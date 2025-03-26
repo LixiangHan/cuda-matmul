@@ -11,7 +11,7 @@ CUDA_ROOT_DIR=/usr/local/cuda
 
 # CC compiler options:
 CC=g++
-CC_FLAGS=
+CC_FLAGS= -MMD -MP
 CC_LIBS=
 
 ##########################################################
@@ -20,7 +20,7 @@ CC_LIBS=
 
 # NVCC compiler options:
 NVCC=nvcc
-NVCC_FLAGS=
+NVCC_FLAGS= -MMD -MP
 NVCC_LIBS=
 
 # CUDA library directory:
@@ -43,15 +43,19 @@ OBJ_DIR = bin
 # Include header file diretory:
 INC_DIR = include
 
+NVCC_FLAGS += -I$(INC_DIR)
+CC_FLAGS += -I$(INC_DIR)
 ##########################################################
 
 ## Make variables ##
 
 # Target executable name:
-EXE = matmul
+EXE = $(OBJ_DIR)/matmul
 
 # Object files:
 OBJS = $(OBJ_DIR)/main.o $(OBJ_DIR)/matmulv1.o $(OBJ_DIR)/matmulv2.o $(OBJ_DIR)/matmulv3.o
+
+DEPS := $(OBJS:.o=.d)
 
 ##########################################################
 
@@ -59,18 +63,22 @@ OBJS = $(OBJ_DIR)/main.o $(OBJ_DIR)/matmulv1.o $(OBJ_DIR)/matmulv2.o $(OBJ_DIR)/
 
 # Link c++ and CUDA compiled object files to target executable:
 $(EXE) : $(OBJS)
+	@mkdir -p $(OBJ_DIR)
 	$(CC) $(CC_FLAGS) $(OBJS) -o $@ $(CUDA_INC_DIR) $(CUDA_LIB_DIR) $(CUDA_LINK_LIBS)
 
 # Compile main .cpp file to object files:
 $(OBJ_DIR)/%.o : %.cpp
+	@mkdir -p $(OBJ_DIR)
 	$(CC) $(CC_FLAGS) -c $< -o $@
 
 # Compile C++ source files to object files:
-$(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp include/%.h
+$(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp
+	@mkdir -p $(OBJ_DIR)
 	$(CC) $(CC_FLAGS) -c $< -o $@
 
 # Compile CUDA source files to object files:
-$(OBJ_DIR)/%.o : $(SRC_DIR)/%.cu $(INC_DIR)/%.cuh
+$(OBJ_DIR)/%.o : $(SRC_DIR)/%.cu
+	@mkdir -p $(OBJ_DIR)
 	$(NVCC) $(NVCC_FLAGS) -c $< -o $@ $(NVCC_LIBS)
 
 # Clean objects in object directory.
@@ -78,5 +86,6 @@ $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cu $(INC_DIR)/%.cuh
 clean:
 	$(RM) bin/* *.o $(EXE)
 
+-include $(DEPS)
 
 
