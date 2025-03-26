@@ -50,10 +50,10 @@ CC_FLAGS += -I$(INC_DIR)
 ## Make variables ##
 
 # Target executable name:
-EXE = $(OBJ_DIR)/matmul
+EXE = $(OBJ_DIR)/main
 
 # Object files:
-OBJS = $(OBJ_DIR)/main.o $(OBJ_DIR)/matmulv1.o $(OBJ_DIR)/matmulv2.o $(OBJ_DIR)/matmulv3.o
+OBJS = $(OBJ_DIR)/main.o $(OBJ_DIR)/matmulv0.o $(OBJ_DIR)/matmulv1.o $(OBJ_DIR)/matmulv2.o $(OBJ_DIR)/matmulv3.o $(OBJ_DIR)/utils.o
 
 DEPS := $(OBJS:.o=.d)
 
@@ -66,10 +66,10 @@ $(EXE) : $(OBJS)
 	@mkdir -p $(OBJ_DIR)
 	$(CC) $(CC_FLAGS) $(OBJS) -o $@ $(CUDA_INC_DIR) $(CUDA_LIB_DIR) $(CUDA_LINK_LIBS)
 
-# Compile main .cpp file to object files:
-$(OBJ_DIR)/%.o : %.cpp
+# Compile main .cu file to object files:
+$(OBJ_DIR)/%.o : %.cu
 	@mkdir -p $(OBJ_DIR)
-	$(CC) $(CC_FLAGS) -c $< -o $@
+	$(NVCC) $(NVCC_FLAGS) -c $< -o $@ $(NVCC_LIBS)
 
 # Compile C++ source files to object files:
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp
