@@ -3,6 +3,8 @@
 
 const unsigned int V = 4;
 const unsigned int S = 4;
+const unsigned int BlockSize = 16;
+const unsigned int L = BlockSize * V;
 
 void matmulv0(float *A, float *B, float *C, int N);
 

@@ -4,8 +4,7 @@
 #include "matmul.cuh"
 #include "utils.hpp"
 
-const unsigned int N = 4096;
-const unsigned int BlockSize = 16;
+const unsigned int N = 1024;
 
 int main(int argc, char **argv) {
     // Allocate host memory
@@ -19,7 +18,7 @@ int main(int argc, char **argv) {
     random_matrix(B, N);
 
     // Compute reference result
-    // matmulv0(A, B, ref_C, N);
+    matmulv0(A, B, ref_C, N);
     
     // Allocate device memory
     float *d_A;
@@ -53,6 +52,14 @@ int main(int argc, char **argv) {
     // float error = check_result(C, ref_C, N);
     // printf("matmulv2 error: %f\n", error);
     
+    // Test matmulv3
+
+    matmulv3<<<grid_size, block_size>>>(d_A, d_B, d_C, N);
+
+    CHECK(cudaMemcpy(C, d_C, N * N * sizeof(float), cudaMemcpyDeviceToHost));
+    float error = check_result(C, ref_C, N);
+    printf("matmulv3 error: %f\n", error);
+
     // Free host memory
     free(A);
     free(B);
