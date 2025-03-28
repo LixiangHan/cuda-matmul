@@ -18,8 +18,8 @@ __global__ void matmulv3(float *A, float *B, float *C, int N) {
             int sx = tid % S;
             int sy = tid / S + i * stride;
             int ax = ko + sx;
-            int ay = blockIdx.y * blockDim.y * L + sy;
-            int bx = blockIdx.x * blockDim.x * L + sy;
+            int ay = blockIdx.y * L + sy;
+            int bx = blockIdx.x * L + sy;
             int by = ko + sx;
             s_a[sx][sy] = A[ay * N + ax];
             s_b[sx][sy] = B[by * N + bx];
