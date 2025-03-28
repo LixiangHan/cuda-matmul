@@ -33,32 +33,85 @@ int main(int argc, char **argv) {
     CHECK(cudaMemcpy(d_B, B, N * N * sizeof(float), cudaMemcpyHostToDevice));
 
     // Test matmulv1
-    dim3 block_size(BlockSize, BlockSize);
-    dim3 grid_size((N + BlockSize - 1) / BlockSize, (N + BlockSize - 1) / BlockSize);
+    {
+        CHECK(cudaMemset(d_C, 0, N * N * sizeof(float)));
+        cudaEvent_t start, stop;
+        float elapsed;
+        CHECK(cudaEventCreate(&start));
+        CHECK(cudaEventCreate(&stop));
 
-    matmulv1<<<grid_size, block_size>>>(d_A, d_B, d_C, N);
+        dim3 block_size(BlockSize, BlockSize);
+        dim3 grid_size((N + BlockSize - 1) / BlockSize, (N + BlockSize - 1) / BlockSize);
 
-    CHECK(cudaMemcpy(C, d_C, N * N * sizeof(float), cudaMemcpyDeviceToHost));
-    // float error = check_result(C, ref_C, N);
-    // printf("matmulv1 error: %f\n", error);
+        CHECK(cudaEventRecord(start));
+
+        matmulv1<<<grid_size, block_size>>>(d_A, d_B, d_C, N);
+
+        CHECK(cudaEventRecord(stop));
+        CHECK(cudaEventSynchronize(stop));
+        CHECK(cudaEventElapsedTime(&elapsed, start, stop));
+
+        CHECK(cudaMemcpy(C, d_C, N * N * sizeof(float), cudaMemcpyDeviceToHost));
+        
+        float error = check_result(C, ref_C, N);
+        printf("---------- matmulv1 ----------\n");
+        printf("  - time: %f ms\n", elapsed);
+        printf("  - error: %f\n\n", error);
+    }
 
     // Test matmulv2
-    grid_size.x = (N + BlockSize - 1) / BlockSize / V;
-    grid_size.y = (N + BlockSize - 1) / BlockSize / V;
+    {
+        CHECK(cudaMemset(d_C, 0, N * N * sizeof(float)));
+        cudaEvent_t start, stop;
+        float elapsed;
+        CHECK(cudaEventCreate(&start));
+        CHECK(cudaEventCreate(&stop));
 
-    matmulv2<<<grid_size, block_size>>>(d_A, d_B, d_C, N);
+        dim3 block_size(BlockSize, BlockSize);
+        dim3 grid_size((N + BlockSize - 1) / BlockSize / V, (N + BlockSize - 1) / BlockSize / V);
 
-    CHECK(cudaMemcpy(C, d_C, N * N * sizeof(float), cudaMemcpyDeviceToHost));
-    // float error = check_result(C, ref_C, N);
-    // printf("matmulv2 error: %f\n", error);
+        CHECK(cudaEventRecord(start));
+        
+        matmulv2<<<grid_size, block_size>>>(d_A, d_B, d_C, N);
+        
+        CHECK(cudaEventRecord(stop));
+        CHECK(cudaEventSynchronize(stop));
+        CHECK(cudaEventElapsedTime(&elapsed, start, stop));
+
+        CHECK(cudaMemcpy(C, d_C, N * N * sizeof(float), cudaMemcpyDeviceToHost));
+
+        float error = check_result(C, ref_C, N);
+        printf("---------- matmulv2 ----------\n");
+        printf("  - time: %f ms\n", elapsed);
+        printf("  - error: %f\n\n", error);
+    }
     
     // Test matmulv3
+    {
+        CHECK(cudaMemset(d_C, 0, N * N * sizeof(float)));
+        cudaEvent_t start, stop;
+        float elapsed;
+        CHECK(cudaEventCreate(&start));
+        CHECK(cudaEventCreate(&stop));
 
-    matmulv3<<<grid_size, block_size>>>(d_A, d_B, d_C, N);
+        dim3 block_size(BlockSize, BlockSize);
+        dim3 grid_size((N + BlockSize - 1) / BlockSize / V, (N + BlockSize - 1) / BlockSize / V);
 
-    CHECK(cudaMemcpy(C, d_C, N * N * sizeof(float), cudaMemcpyDeviceToHost));
-    float error = check_result(C, ref_C, N);
-    printf("matmulv3 error: %f\n", error);
+        CHECK(cudaEventRecord(start));
+
+        matmulv3<<<grid_size, block_size>>>(d_A, d_B, d_C, N);
+        
+        CHECK(cudaEventRecord(stop));
+        CHECK(cudaEventSynchronize(stop));
+        CHECK(cudaEventElapsedTime(&elapsed, start, stop));
+
+        CHECK(cudaMemcpy(C, d_C, N * N * sizeof(float), cudaMemcpyDeviceToHost));
+
+        float error = check_result(C, ref_C, N);
+        printf("---------- matmulv3 ----------\n");
+        printf("  - time: %f ms\n", elapsed);
+        printf("  - error: %f\n\n", error);
+    }
 
     // Free host memory
     free(A);
